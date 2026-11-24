@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en" ng-app="libraryApp">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Library Book Manager</title>
+  <link rel="stylesheet" href="node_modules/bootstrap/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="app/styles.css">
+</head>
+<body class="bg-light">
+  <nav class="navbar navbar-dark bg-dark mb-4">
+    <div class="container">
+      <a class="navbar-brand" href="#!/books">📚 Library Book Manager</a>
+    </div>
+  </nav>
+
+  <main class="container pb-5">
+    <div ng-view></div>
+  </main>
+
+  <script src="node_modules/angular/angular.min.js"></script>
+  <script src="node_modules/angular-route/angular-route.min.js"></script>
+  <script src="app/config.js"></script>
+  <script src="app/app.module.js"></script>
+  <script src="app/book.service.js"></script>
+  <script src="app/book-list.controller.js"></script>
+  <script src="app/book-form.controller.js"></script>
+</body>
+</html>

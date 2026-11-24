@@ -1,0 +1,14 @@
+.sortable {
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+}
+
+.sort-arrow {
+  font-size: 0.7em;
+}
+
+/* Hide AngularJS templates until compiled. */
+[ng-cloak] {
+  display: none !important;
+}
