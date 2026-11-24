@@ -1,0 +1,63 @@
+<div class="row justify-content-center">
+  <div class="col-12 col-md-8 col-lg-6">
+    <h1 class="h3 mb-3">{{ vm.isEdit ? 'Edit book' : 'Add a book' }}</h1>
+
+    <div class="alert alert-danger" role="alert" ng-if="vm.error">{{ vm.error }}</div>
+
+    <div class="text-center py-5" ng-if="vm.loading">
+      <div class="spinner-border text-primary" role="status"></div>
+      <div class="text-muted mt-2">Loading book…</div>
+    </div>
+
+    <form name="bookForm" class="card card-body" novalidate
+          ng-if="!vm.loading && !vm.loadFailed" ng-submit="vm.save(bookForm)">
+
+      <div class="mb-3">
+        <label class="form-label" for="title">Title <span class="text-danger">*</span></label>
+        <input id="title" name="title" type="text" class="form-control"
+               ng-model="vm.book.title" required maxlength="200"
+               ng-class="{ 'is-invalid': vm.showError(bookForm, 'title') }">
+        <div class="invalid-feedback" ng-if="bookForm.title.$error.required">Title is required.</div>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label" for="author">Author <span class="text-danger">*</span></label>
+        <input id="author" name="author" type="text" class="form-control"
+               ng-model="vm.book.author" required maxlength="120"
+               ng-class="{ 'is-invalid': vm.showError(bookForm, 'author') }">
+        <div class="invalid-feedback" ng-if="bookForm.author.$error.required">Author is required.</div>
+      </div>
+
+      <div class="row">
+        <div class="col-sm-7 mb-3">
+          <label class="form-label" for="category">Category</label>
+          <input id="category" name="category" type="text" class="form-control" list="categoryOptions"
+                 placeholder="e.g. Fiction" ng-model="vm.book.category" maxlength="50">
+          <datalist id="categoryOptions">
+            <option ng-repeat="c in vm.categories" value="{{ c }}"></option>
+          </datalist>
+        </div>
+
+        <div class="col-sm-5 mb-3">
+          <label class="form-label" for="year">Published year</label>
+          <input id="year" name="year" type="number" class="form-control" step="1"
+                 ng-model="vm.book.published_year" min="{{ vm.minYear }}" max="{{ vm.maxYear }}"
+                 ng-pattern="/^\d+$/"
+                 ng-class="{ 'is-invalid': vm.showError(bookForm, 'year') }">
+          <div class="invalid-feedback">
+            Year must be a whole number between {{ vm.minYear }} and {{ vm.maxYear }}.
+          </div>
+        </div>
+      </div>
+
+      <div class="d-flex justify-content-end gap-2">
+        <button type="button" class="btn btn-secondary" ng-click="vm.cancel()">Cancel</button>
+        <button type="submit" class="btn btn-primary" ng-disabled="vm.saving">
+          <span class="spinner-border spinner-border-sm me-1" ng-if="vm.saving"></span>Save
+        </button>
+      </div>
+    </form>
+
+    <button type="button" class="btn btn-secondary" ng-if="vm.loadFailed" ng-click="vm.cancel()">Back to list</button>
+  </div>
+</div>
