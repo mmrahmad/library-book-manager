@@ -1,0 +1,154 @@
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+  <h1 class="h3 mb-0">Books</h1>
+  <a href="#!/books/new" class="btn btn-primary">+ Add book</a>
+</div>
+
+<!-- Filters -->
+<div class="card card-body mb-3">
+  <div class="row g-2">
+    <div class="col-12 col-md-6">
+      <label class="form-label small text-muted mb-1" for="search">Search</label>
+      <input id="search" type="search" class="form-control" placeholder="Title or author…"
+             ng-model="vm.filters.search" ng-model-options="{ debounce: 300 }"
+             ng-change="vm.onFilterChange()">
+    </div>
+    <div class="col-6 col-md-3">
+      <label class="form-label small text-muted mb-1" for="category">Category</label>
+      <select id="category" class="form-select" ng-model="vm.filters.category" ng-change="vm.onFilterChange()">
+        <option value="">All categories</option>
+        <option ng-repeat="c in vm.categories" value="{{ c }}">{{ c }}</option>
+      </select>
+    </div>
+    <div class="col-6 col-md-3">
+      <label class="form-label small text-muted mb-1" for="sort">Sort by</label>
+      <select id="sort" class="form-select" ng-model="vm.filters.sort" ng-change="vm.onFilterChange()">
+        <option value="created_at">Date added</option>
+        <option value="title">Title</option>
+        <option value="author">Author</option>
+        <option value="published_year">Year</option>
+        <option value="category">Category</option>
+      </select>
+    </div>
+  </div>
+</div>
+
+<!-- Feedback -->
+<div class="alert alert-danger d-flex justify-content-between align-items-start" role="alert" ng-if="vm.error">
+  <span>{{ vm.error }}</span>
+  <button type="button" class="btn btn-sm btn-outline-danger ms-2" ng-click="vm.load()">Retry</button>
+</div>
+<div class="alert alert-success alert-dismissible" role="status" ng-if="vm.notice && !vm.error">
+  {{ vm.notice }}
+  <button type="button" class="btn-close" aria-label="Close" ng-click="vm.notice = null"></button>
+</div>
+
+<div class="text-center py-5" ng-if="vm.loading">
+  <div class="spinner-border text-primary" role="status"></div>
+  <div class="text-muted mt-2">Loading books…</div>
+</div>
+
+<div ng-if="!vm.loading && !vm.error">
+  <div class="text-center text-muted py-5" ng-if="vm.books.length === 0">
+    No books found<span ng-if="vm.filters.search || vm.filters.category"> for these filters</span>.
+  </div>
+
+  <div class="table-responsive bg-white rounded shadow-sm" ng-if="vm.books.length > 0">
+    <table class="table table-hover align-middle mb-0">
+      <thead class="table-light">
+        <tr>
+          <th class="sortable" ng-click="vm.sortBy('title')">
+            Title <span class="sort-arrow" ng-show="vm.filters.sort === 'title'">{{ vm.filters.order === 'asc' ? '▲' : '▼' }}</span>
+          </th>
+          <th class="sortable d-none d-md-table-cell" ng-click="vm.sortBy('author')">
+            Author <span class="sort-arrow" ng-show="vm.filters.sort === 'author'">{{ vm.filters.order === 'asc' ? '▲' : '▼' }}</span>
+          </th>
+          <th class="sortable d-none d-lg-table-cell" ng-click="vm.sortBy('category')">
+            Category <span class="sort-arrow" ng-show="vm.filters.sort === 'category'">{{ vm.filters.order === 'asc' ? '▲' : '▼' }}</span>
+          </th>
+          <th class="sortable d-none d-lg-table-cell" ng-click="vm.sortBy('published_year')">
+            Year <span class="sort-arrow" ng-show="vm.filters.sort === 'published_year'">{{ vm.filters.order === 'asc' ? '▲' : '▼' }}</span>
+          </th>
+          <th>Status</th>
+          <th class="text-end">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr ng-repeat="book in vm.books track by book.id">
+          <td>
+            <div class="fw-semibold">{{ book.title }}</div>
+            <!-- On narrow screens, show the hidden columns under the title -->
+            <div class="small text-muted d-md-none">{{ book.author }}</div>
+            <div class="small text-muted d-lg-none">
+              {{ book.category || 'Uncategorised' }}<span ng-if="book.published_year"> · {{ book.published_year }}</span>
+            </div>
+          </td>
+          <td class="d-none d-md-table-cell">{{ book.author }}</td>
+          <td class="d-none d-lg-table-cell">{{ book.category || '—' }}</td>
+          <td class="d-none d-lg-table-cell">{{ book.published_year || '—' }}</td>
+          <td>
+            <span class="badge text-bg-warning" ng-if="book.is_borrowed">Borrowed</span>
+            <span class="badge text-bg-success" ng-if="!book.is_borrowed">Available</span>
+            <div class="small text-muted" ng-if="book.is_borrowed">by {{ book.borrower_name }}</div>
+          </td>
+          <td class="text-end">
+            <div class="d-inline-flex flex-wrap justify-content-end gap-1">
+              <button type="button" class="btn btn-sm btn-outline-primary" ng-if="!book.is_borrowed"
+                      ng-disabled="vm.busyId === book.id" ng-click="vm.openBorrow(book)">Borrow</button>
+              <button type="button" class="btn btn-sm btn-outline-success" ng-if="book.is_borrowed"
+                      ng-disabled="vm.busyId === book.id" ng-click="vm.giveBack(book)">Return</button>
+              <a class="btn btn-sm btn-outline-secondary" ng-href="#!/books/{{ book.id }}/edit">Edit</a>
+              <button type="button" class="btn btn-sm btn-outline-danger"
+                      ng-disabled="vm.busyId === book.id || book.is_borrowed"
+                      title="{{ book.is_borrowed ? 'Return the book before deleting it' : 'Delete' }}"
+                      ng-click="vm.remove(book)">Delete</button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Pagination -->
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mt-3" ng-if="vm.total > 0">
+    <span class="text-muted small">{{ vm.total }} book{{ vm.total === 1 ? '' : 's' }} · page {{ vm.page }} of {{ vm.pages }}</span>
+    <nav aria-label="Pagination" ng-if="vm.pages > 1">
+      <ul class="pagination pagination-sm mb-0">
+        <li class="page-item" ng-class="{ disabled: vm.page === 1 }">
+          <button type="button" class="page-link" ng-click="vm.goToPage(vm.page - 1)">Previous</button>
+        </li>
+        <li class="page-item" ng-class="{ disabled: vm.page === vm.pages }">
+          <button type="button" class="page-link" ng-click="vm.goToPage(vm.page + 1)">Next</button>
+        </li>
+      </ul>
+    </nav>
+  </div>
+</div>
+
+<!-- Borrow dialog: asks for the borrower's name before borrowing -->
+<div ng-if="vm.borrowTarget">
+  <div class="modal d-block" tabindex="-1" role="dialog" aria-modal="true" aria-labelledby="borrowTitle">
+    <div class="modal-dialog modal-dialog-centered">
+      <form class="modal-content" name="borrowForm" novalidate ng-submit="vm.confirmBorrow(borrowForm)">
+        <div class="modal-header">
+          <h2 class="modal-title h5" id="borrowTitle">Borrow "{{ vm.borrowTarget.title }}"</h2>
+          <button type="button" class="btn-close" aria-label="Close" ng-click="vm.closeBorrow()"></button>
+        </div>
+        <div class="modal-body">
+          <label class="form-label" for="borrowerName">Borrower's name</label>
+          <input id="borrowerName" name="borrowerName" type="text" class="form-control" autofocus
+                 ng-model="vm.borrowerName" ng-trim="true" required maxlength="100"
+                 ng-class="{ 'is-invalid': borrowForm.borrowerName.$invalid && borrowForm.$submitted }">
+          <div class="invalid-feedback">Please enter the borrower's name.</div>
+          <div class="alert alert-danger mt-3 mb-0" ng-if="vm.borrowError">{{ vm.borrowError }}</div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" ng-click="vm.closeBorrow()">Cancel</button>
+          <button type="submit" class="btn btn-primary" ng-disabled="vm.busyId">
+            <span class="spinner-border spinner-border-sm me-1" ng-if="vm.busyId"></span>Borrow
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+  <div class="modal-backdrop show"></div>
+</div>
